@@ -28,7 +28,8 @@ public class AccountIntegrationTest {
     void resetState() throws Exception {
         // Reset do estado da aplicação antes de cada teste
         mockMvc.perform(post("/reset"))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(content().string("OK"));
     }
 
     @Test

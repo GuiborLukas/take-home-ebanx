@@ -24,8 +24,8 @@ public class BalanceController {
     
     @Operation(summary = "Reseta o estado das contas (para testes)")
     @PostMapping("/reset")
-    public ResponseEntity<Void> reset() {
+    public ResponseEntity<String> reset() {
         accountService.reset();
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok().body("OK");
     }
 }

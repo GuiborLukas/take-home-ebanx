@@ -26,6 +26,23 @@ class AccountServiceImplTest {
     }
 
     @Test
+    void testReset() {
+        DepositEventInputDTO depositDTO = new DepositEventInputDTO("100", 50);
+        accountService.processDeposit(depositDTO);
+
+        BalanceOutputDTO balanceBeforeReset = accountService.getBalance("100");
+        assertEquals(50, balanceBeforeReset.getBalance());
+
+        accountService.reset();
+
+        AccountNotFoundException ex = assertThrows(AccountNotFoundException.class, () -> {
+            accountService.getBalance("100");
+        });
+        assertTrue(ex.getMessage().contains("Conta 100 não encontrada"));
+    }
+
+
+    @Test
     void testGetBalanceForNonExistingAccount() {
         AccountNotFoundException ex = assertThrows(AccountNotFoundException.class, () -> {
             accountService.getBalance("1234");
