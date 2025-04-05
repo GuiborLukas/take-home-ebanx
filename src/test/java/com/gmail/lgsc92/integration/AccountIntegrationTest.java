@@ -61,7 +61,7 @@ public class AccountIntegrationTest {
         // -- Get balance for existing account
         mockMvc.perform(get("/balance?account_id=100"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.balance", is(20)));
+                .andExpect(content().string("20"));
 
         // -- Withdraw from non-existing account
         String withdrawNonExisting = "{\"type\":\"withdraw\", \"origin\":\"200\", \"amount\":10}";

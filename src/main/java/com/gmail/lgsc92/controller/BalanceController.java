@@ -17,9 +17,9 @@ public class BalanceController {
 
     @Operation(summary = "Consulta o saldo de uma conta")
     @GetMapping("/balance")
-    public ResponseEntity<BalanceOutputDTO> getBalance(@RequestParam("account_id") String accountId) {
+    public ResponseEntity<Integer> getBalance(@RequestParam("account_id") String accountId) {
         BalanceOutputDTO balanceDTO = accountService.getBalance(accountId);
-        return ResponseEntity.ok(balanceDTO);
+        return ResponseEntity.ok(balanceDTO.getBalance());
     }
     
     @Operation(summary = "Reseta o estado das contas (para testes)")
