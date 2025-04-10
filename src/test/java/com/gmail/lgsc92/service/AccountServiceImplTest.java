@@ -16,6 +16,7 @@ import com.gmail.lgsc92.model.dto.input.TransferEventInputDTO;
 import com.gmail.lgsc92.model.dto.input.WithdrawEventInputDTO;
 import com.gmail.lgsc92.model.dto.output.BalanceOutputDTO;
 import com.gmail.lgsc92.model.dto.output.EventOutputDTO;
+import com.gmail.lgsc92.repository.AccountRepository;
 
 class AccountServiceImplTest {
 
@@ -23,7 +24,8 @@ class AccountServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        accountService = new AccountServiceImpl();
+        AccountRepository accountRepository = new AccountRepository();
+        accountService = new AccountServiceImpl(accountRepository);
         accountService.reset();
     }
 

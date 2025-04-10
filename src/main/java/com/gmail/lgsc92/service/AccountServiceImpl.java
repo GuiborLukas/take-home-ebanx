@@ -1,10 +1,5 @@
 package com.gmail.lgsc92.service;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.springframework.stereotype.Service;
-
 import com.gmail.lgsc92.exception.AccountNotFoundException;
 import com.gmail.lgsc92.exception.InsufficientFundsException;
 import com.gmail.lgsc92.model.dto.input.DepositEventInputDTO;
@@ -14,17 +9,25 @@ import com.gmail.lgsc92.model.dto.output.AccountOutputDTO;
 import com.gmail.lgsc92.model.dto.output.BalanceOutputDTO;
 import com.gmail.lgsc92.model.dto.output.EventOutputDTO;
 import com.gmail.lgsc92.model.entity.Account;
-
+import com.gmail.lgsc92.repository.AccountRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 @Slf4j
 @Service
 public class AccountServiceImpl implements AccountService {
 
-    private final Map<String, Account> accountStore = new ConcurrentHashMap<>();
+    private final AccountRepository accountRepository;
+
+    public AccountServiceImpl(AccountRepository accountRepository) {
+        this.accountRepository = accountRepository;
+    }
 
     @Override
     public EventOutputDTO processDeposit(DepositEventInputDTO depositDTO) {
+        Map<String, Account> accountStore = accountRepository.getAccountStore();
         Account account = accountStore.compute(depositDTO.destination(), (key, acc) -> {
             if (acc == null) {
                 return Account.builder()
@@ -45,6 +48,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public EventOutputDTO processWithdraw(WithdrawEventInputDTO withdrawDTO) {
+        Map<String, Account> accountStore = accountRepository.getAccountStore();
         Account account = accountStore.get(withdrawDTO.origin());
         if (account == null) {
             throw new AccountNotFoundException("Conta " + withdrawDTO.origin() + " não encontrada");
@@ -63,6 +67,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public EventOutputDTO processTransfer(TransferEventInputDTO transferDTO) {
+        Map<String, Account> accountStore = accountRepository.getAccountStore();
         Account originAccount = accountStore.get(transferDTO.origin());
         if (originAccount == null) {
             throw new AccountNotFoundException("Conta " + transferDTO.origin() + " não encontrada");
@@ -75,9 +80,9 @@ public class AccountServiceImpl implements AccountService {
         Account destAccount = accountStore.compute(transferDTO.destination(), (key, acc) -> {
             if (acc == null) {
                 return Account.builder()
-                        .id(transferDTO.destination())
-                        .balance(transferDTO.amount())
-                        .build();
+                    .id(transferDTO.destination())
+                    .balance(transferDTO.amount())
+                    .build();
             }
             acc.setBalance(acc.getBalance().add(transferDTO.amount()));
             return acc;
@@ -96,17 +101,16 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public BalanceOutputDTO getBalance(String accountId) {
+        Map<String, Account> accountStore = accountRepository.getAccountStore();
         Account account = accountStore.get(accountId);
         if (account == null) {
             throw new AccountNotFoundException("Conta " + accountId + " não encontrada");
         }
-        return BalanceOutputDTO.builder()
-                .balance(account.getBalance())
-                .build();
+        return BalanceOutputDTO.builder().balance(account.getBalance()).build();
     }
 
     @Override
     public void reset() {
-        accountStore.clear();
+        accountRepository.reset();
     }
 }
