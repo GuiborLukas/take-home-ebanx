@@ -1,6 +1,5 @@
 package com.gmail.lgsc92.model.dto.output;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;

@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.math.BigDecimal;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -27,11 +29,12 @@ class AccountServiceImplTest {
 
     @Test
     void testReset() {
-        DepositEventInputDTO depositDTO = new DepositEventInputDTO("100", 50);
+        // Cria a conta com depósito inicial
+        DepositEventInputDTO depositDTO = new DepositEventInputDTO("100", BigDecimal.valueOf(50));
         accountService.processDeposit(depositDTO);
 
         BalanceOutputDTO balanceBeforeReset = accountService.getBalance("100");
-        assertEquals(50, balanceBeforeReset.getBalance());
+        assertEquals(BigDecimal.valueOf(50), balanceBeforeReset.getBalance());
 
         accountService.reset();
 
@@ -40,7 +43,6 @@ class AccountServiceImplTest {
         });
         assertTrue(ex.getMessage().contains("Conta 100 não encontrada"));
     }
-
 
     @Test
     void testGetBalanceForNonExistingAccount() {
@@ -52,33 +54,33 @@ class AccountServiceImplTest {
 
     @Test
     void testDepositCreatesAccount() {
-        DepositEventInputDTO depositDTO = new DepositEventInputDTO("100", 10);
+        DepositEventInputDTO depositDTO = new DepositEventInputDTO("100", BigDecimal.valueOf(10));
         EventOutputDTO output = accountService.processDeposit(depositDTO);
         assertNotNull(output.getDestination());
         assertEquals("100", output.getDestination().getId());
-        assertEquals(10, output.getDestination().getBalance());
+        assertEquals(BigDecimal.valueOf(10), output.getDestination().getBalance());
     }
 
     @Test
     void testDepositIntoExistingAccount() {
-        DepositEventInputDTO depositDTO = new DepositEventInputDTO("100", 10);
+        DepositEventInputDTO depositDTO = new DepositEventInputDTO("100", BigDecimal.valueOf(10));
         accountService.processDeposit(depositDTO);
         EventOutputDTO output = accountService.processDeposit(depositDTO);
         assertEquals("100", output.getDestination().getId());
-        assertEquals(20, output.getDestination().getBalance());
+        assertEquals(BigDecimal.valueOf(20), output.getDestination().getBalance());
     }
 
     @Test
     void testGetBalanceForExistingAccount() {
-        DepositEventInputDTO depositDTO = new DepositEventInputDTO("100", 10);
+        DepositEventInputDTO depositDTO = new DepositEventInputDTO("100", BigDecimal.valueOf(10));
         accountService.processDeposit(depositDTO);
         BalanceOutputDTO balanceDTO = accountService.getBalance("100");
-        assertEquals(10, balanceDTO.getBalance());
+        assertEquals(BigDecimal.valueOf(10), balanceDTO.getBalance());
     }
 
     @Test
     void testWithdrawFromNonExistingAccount() {
-        WithdrawEventInputDTO withdrawDTO = new WithdrawEventInputDTO("200", 10);
+        WithdrawEventInputDTO withdrawDTO = new WithdrawEventInputDTO("200", BigDecimal.valueOf(10));
         AccountNotFoundException ex = assertThrows(AccountNotFoundException.class, () -> {
             accountService.processWithdraw(withdrawDTO);
         });
@@ -88,35 +90,35 @@ class AccountServiceImplTest {
     @Test
     void testWithdrawFromExistingAccount() {
         // Cria a conta com depósito inicial
-        DepositEventInputDTO depositDTO = new DepositEventInputDTO("100", 10);
+        DepositEventInputDTO depositDTO = new DepositEventInputDTO("100", BigDecimal.valueOf(10));
         accountService.processDeposit(depositDTO);
         // Realiza o saque
-        WithdrawEventInputDTO withdrawDTO = new WithdrawEventInputDTO("100", 5);
+        WithdrawEventInputDTO withdrawDTO = new WithdrawEventInputDTO("100", BigDecimal.valueOf(5));
         EventOutputDTO output = accountService.processWithdraw(withdrawDTO);
         assertNotNull(output.getOrigin());
         assertEquals("100", output.getOrigin().getId());
-        assertEquals(5, output.getOrigin().getBalance());
+        assertEquals(BigDecimal.valueOf(5), output.getOrigin().getBalance());
     }
 
     @Test
     void testTransferFromExistingAccount() {
         // Cria a conta de origem com depósito inicial
-        DepositEventInputDTO depositDTO = new DepositEventInputDTO("100", 20);
+        DepositEventInputDTO depositDTO = new DepositEventInputDTO("100", BigDecimal.valueOf(20));
         accountService.processDeposit(depositDTO);
         // Realiza a transferência
-        TransferEventInputDTO transferDTO = new TransferEventInputDTO("100", 15, "300");
+        TransferEventInputDTO transferDTO = new TransferEventInputDTO("100", BigDecimal.valueOf(15), "300");
         EventOutputDTO output = accountService.processTransfer(transferDTO);
         assertNotNull(output.getOrigin());
         assertNotNull(output.getDestination());
         assertEquals("100", output.getOrigin().getId());
-        assertEquals(5, output.getOrigin().getBalance());
+        assertEquals(BigDecimal.valueOf(5), output.getOrigin().getBalance());
         assertEquals("300", output.getDestination().getId());
-        assertEquals(15, output.getDestination().getBalance());
+        assertEquals(BigDecimal.valueOf(15), output.getDestination().getBalance());
     }
 
     @Test
     void testTransferFromNonExistingAccount() {
-        TransferEventInputDTO transferDTO = new TransferEventInputDTO("200", 15, "300");
+        TransferEventInputDTO transferDTO = new TransferEventInputDTO("200", BigDecimal.valueOf(15), "300");
         AccountNotFoundException ex = assertThrows(AccountNotFoundException.class, () -> {
             accountService.processTransfer(transferDTO);
         });

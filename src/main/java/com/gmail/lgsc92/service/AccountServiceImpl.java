@@ -1,5 +1,10 @@
 package com.gmail.lgsc92.service;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.springframework.stereotype.Service;
+
 import com.gmail.lgsc92.exception.AccountNotFoundException;
 import com.gmail.lgsc92.exception.InsufficientFundsException;
 import com.gmail.lgsc92.model.dto.input.DepositEventInputDTO;
@@ -9,11 +14,8 @@ import com.gmail.lgsc92.model.dto.output.AccountOutputDTO;
 import com.gmail.lgsc92.model.dto.output.BalanceOutputDTO;
 import com.gmail.lgsc92.model.dto.output.EventOutputDTO;
 import com.gmail.lgsc92.model.entity.Account;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -25,9 +27,12 @@ public class AccountServiceImpl implements AccountService {
     public EventOutputDTO processDeposit(DepositEventInputDTO depositDTO) {
         Account account = accountStore.compute(depositDTO.destination(), (key, acc) -> {
             if (acc == null) {
-                return Account.builder().id(depositDTO.destination()).balance(depositDTO.amount()).build();
+                return Account.builder()
+                    .id(depositDTO.destination())
+                    .balance(depositDTO.amount())
+                    .build();
             }
-            acc.setBalance(acc.getBalance() + depositDTO.amount());
+            acc.setBalance(acc.getBalance().add(depositDTO.amount()));
             return acc;
         });
         return EventOutputDTO.builder()
@@ -44,10 +49,10 @@ public class AccountServiceImpl implements AccountService {
         if (account == null) {
             throw new AccountNotFoundException("Conta " + withdrawDTO.origin() + " não encontrada");
         }
-        if (account.getBalance() < withdrawDTO.amount()) {
+        if (account.getBalance().compareTo(withdrawDTO.amount()) < 0) {
             throw new InsufficientFundsException("Saldo insuficiente para saque");
         }
-        account.setBalance(account.getBalance() - withdrawDTO.amount());
+        account.setBalance(account.getBalance().subtract(withdrawDTO.amount()));
         return EventOutputDTO.builder()
                 .origin(AccountOutputDTO.builder()
                         .id(account.getId())
@@ -58,21 +63,23 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public EventOutputDTO processTransfer(TransferEventInputDTO transferDTO) {
-        
         Account originAccount = accountStore.get(transferDTO.origin());
         if (originAccount == null) {
             throw new AccountNotFoundException("Conta " + transferDTO.origin() + " não encontrada");
         }
-        if (originAccount.getBalance() < transferDTO.amount()) {
+        if (originAccount.getBalance().compareTo(transferDTO.amount()) < 0) {
             throw new InsufficientFundsException("Saldo insuficiente para transferência");
         }
-        originAccount.setBalance(originAccount.getBalance() - transferDTO.amount());
+        originAccount.setBalance(originAccount.getBalance().subtract(transferDTO.amount()));
 
         Account destAccount = accountStore.compute(transferDTO.destination(), (key, acc) -> {
             if (acc == null) {
-                return Account.builder().id(transferDTO.destination()).balance(transferDTO.amount()).build();
+                return Account.builder()
+                        .id(transferDTO.destination())
+                        .balance(transferDTO.amount())
+                        .build();
             }
-            acc.setBalance(acc.getBalance() + transferDTO.amount());
+            acc.setBalance(acc.getBalance().add(transferDTO.amount()));
             return acc;
         });
         return EventOutputDTO.builder()
@@ -93,7 +100,9 @@ public class AccountServiceImpl implements AccountService {
         if (account == null) {
             throw new AccountNotFoundException("Conta " + accountId + " não encontrada");
         }
-        return BalanceOutputDTO.builder().balance(account.getBalance()).build();
+        return BalanceOutputDTO.builder()
+                .balance(account.getBalance())
+                .build();
     }
 
     @Override

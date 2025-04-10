@@ -1,7 +1,12 @@
 package com.gmail.lgsc92.model.dto.input;
 
+import java.math.BigDecimal;
+
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.gmail.lgsc92.utils.deserializer.CustomBigDecimalDeserializer;
+
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -12,7 +17,8 @@ public record DepositEventInputDTO(
     String destination,
     
     @NotNull(message = "Valor é obrigatório")
-    @Min(value = 1, message = "Valor deve ser maior que zero")
+    @DecimalMin(value = "0.01", message = "Valor deve ser maior que zero")
     @Schema(description = "Valor a depositar", example = "10", requiredMode = Schema.RequiredMode.REQUIRED)
-    Integer amount
+    @JsonDeserialize(using = CustomBigDecimalDeserializer.class)
+    BigDecimal amount
 ) {}
